@@ -1,0 +1,19 @@
+{
+    "options": {
+      "paths": {
+        "root": "./tiles"
+      }
+    },
+    "styles": {
+      "default": {
+        "style": "https://raw.githubusercontent.com/mapbox/mapbox-gl-styles/master/styles/bright-v9.json",
+        "tilejson": {
+          "bounds": [75.397976555539714, 26.749039076372554, 76.16592208388667, 27.055432355239002], 
+          "minzoom": 12,
+          "maxzoom": 18,
+          "format": "png" 
+        }
+      }
+    }
+  }
+  

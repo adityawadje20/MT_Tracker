@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MT Request Handler</title>
+    <link rel="stylesheet" href="leaflet/leaflet.css">
+    <style>
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    margin: 0;
+    padding: 5px 10px; /* Added padding for better border effect */
+    background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent background */
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    position: relative; /* Ensure h1 is above the map */
+    border: 2px solid white; /* Small white border around the text */
+    border-radius: 5px; /* Optional: rounded corners */
+    display: inline-block; /* Shrinks h1 to fit content */
+}
+
+#map {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 0;
+    
+    
+}
+
+.manage-trip-container {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            z-index: 1000;
+
+        }
+        .manage-trip-button, .next-trip-button {
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            width: 150px; /* Adjust the width here */
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        .manage-trip-button {
+            background-color: #007bff;
+            color: white;
+
+        }
+        .manage-trip-button:hover {
+            background-color: #0056b3;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 1);
+        }
+        .trip-popup {
+            display: none;
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            z-index: 1000;
+            border-radius: 5px;
+            width: 250px;
+        }
+        .trip-popup label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+        .trip-popup input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        .trip-popup input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            outline: none;
+        }
+        .next-trip-button {
+            background-color: #28a745;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+
+        }
+        .next-trip-button:hover {
+            background-color: #218838;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 1);
+        }
+
+
+/* Example CSS for popup */
+.popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    z-index: 1000;
+    width: 80%;
+    max-width: 600px;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.popup-content {
+    color: rgb(0, 0, 0);
+}
+
+.popup-content > * {
+    margin-bottom: 10px;
+}
+
+.popup-content > input[type="checkbox"] {
+    margin-top: 10px;
+}
+
+
+#controls {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 1);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+#controls label {
+    color: #333333;
+    margin-right: 10px;
+}
+
+#controls input[type="text"] {
+    padding: 8px;
+    margin-bottom: 10px;
+    background-color: #ffffff;
+    border: 1px solid #cccccc;
+    color: #333333;
+    border-radius: 5px;
+    width: 200px;
+}
+
+#Route_distance {
+margin-top: 10px;
+background-color: rgba(255, 255, 255, 0.8);
+padding: 10px;
+border-radius: 5px;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+font-size: 16px;
+z-index: 1000;
+}
+
+.plan-route-btn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.plan-route-btn:hover {
+    background-color: #0056b3;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 1);
+}
+
+@media (max-width: 768px) {
+    #tripBtn {
+        top: 20px;
+        right: 20px;
+        font-size: 14px;
+    }
+
+    #popup {
+        width: 120px;
+    }
+
+    #tripContent {
+        width: 80%;
+        padding: 10px;
+    }
+
+    #controls {
+        bottom: 20px;
+        right: 20px;
+    }
+
+    #controls input[type="text"] {
+        width: 150px;
+    }
+}
+
+@media (max-width: 480px) {
+    #tripBtn {
+        top: 15px;
+        right: 15px;
+        font-size: 12px;
+        padding: 8px 16px;
+    }
+
+    #popup {
+        width: 100px;
+        padding: 10px;
+    }
+
+    #tripContent {
+        width: 90%;
+        padding: 8px;
+    }
+
+    #controls {
+        bottom: 15px;
+        right: 15px;
+        padding: 8px;
+    }
+
+    #controls input[type="text"] {
+        width: 120px;
+        padding: 6px;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <h1>MT Request Handler</h1>
+    <!-- <button id="tripBtn">Manage Trip</button>
+    
+    <div id="popup" class="popup">
+        <label for="vehicleId">Vehicle ID:</label>
+        <input type="text" id="vehicleId" placeholder="Enter Vehicle ID">
+    
+        <label for="requestId" id="requestIdLabel" style="display: none;">Request ID:</label>
+        <input type="text" id="requestId" placeholder="Enter Request ID" style="display: none;">
+    
+        <button id="nextBtn">Next</button>
+        <button id="goBtn" style="display: none;">Go</button>
+    </div>
+    <div id="tripContent">
+        <h2>Trip Information</h2>
+        <p>Vehicle ID: <span id="tripVehicleId"></span></p>
+        <p>Request ID: <span id="tripRequestId"></span></p>
+        <button id="closeTripBtn">Close Trip</button>
+    </div> -->
+    <div class="manage-trip-container">
+        <button class="manage-trip-button" id="manageTripBtn">Manage Trip</button>
+        <div class="trip-popup" id="tripPopup">
+            <label for="requestId">Request ID:</label>
+            <input type="text" id="requestId" name="requestId" placeholder="Enter Request ID">
+            <button class="next-trip-button" id="nextTripBtn">Next</button>
+        </div>
+    </div>
+    <div id="popup" class="popup">
+        <p id="requestId"></p>
+        <p id="vehicleType"></p>
+        <p id="vehicleRequiredDateTime"></p>
+        <p id="destination"></p>
+        <p id="whereRequired"></p>
+        <p id="mtd"></p>
+        <p id="status"></p>
+        <div id="diCheckboxContainer" style="display:none;">
+            <label>
+                <input type="checkbox" id="diCheckbox"> DI Carried Out
+            </label>
+        </div>
+        <button id="goTripBtn" style="display:none;" disabled>Go Trip</button>
+        <button id="closeTripBtn" style="display:none;">Close Trip</button>
+    </div>
+
+
+    <div id="map"></div>
+    <div id="controls">
+        <div class="input-group">
+            <label for="start">Start Position:</label>
+            <input type="text" id="start" placeholder="Start position">
+        </div>
+        <div class="input-group">
+            <label for="end">End Position:</label>
+            <input type="text" id="end" placeholder="End position">
+        </div>
+        <div id="Route_distance"></div> <!-- Move the distance display here -->
+        <div id="planRouteBtn" class="plan-route-btn">
+            Plan Route
+        </div>
+    </div>
+
+    <script src="leaflet/leaflet.js"></script>
+    <script src="js/main_MTD.js"></script>
+</body>
+</html>
